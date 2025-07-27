@@ -16,12 +16,18 @@ export class ThreeJSScene {
         this.animationId = null;
         this.onApartmentClick = null;
         this.previouslySelectedMesh = null;
-        this.rotationSpeed = 0.005;
+        this.rotationSpeed = 0.00125;
         this.isMouseDown = false;
         this.lastMouseX = 0;
-        this.cameraDistance = 15; // Dodajemy zmienną dla odległości kamery
-        this.minDistance = 5; // Minimalna odległość
-        this.maxDistance = 50; // Maksymalna odległość
+        this.cameraDistance = 22.5; // Zwiększone z 15 o 50% (15 * 1.5 = 22.5)
+        this.minDistance = 5;
+        this.maxDistance = 50;
+        
+        // DODAJ TE ZMIENNE:
+        this.autoRotationSpeed = 0.00125; // Prędkość automatycznego obrotu
+        this.isAutoRotating = true; // Czy automatyczny obrót jest włączony
+        this.lastInteractionTime = 0; // Czas ostatniej interakcji
+        this.autoRotationDelay = 3000; // 3 sekundy opóźnienia
         
         this.init();
     }
@@ -260,6 +266,12 @@ export class ThreeJSScene {
                 if (this.onApartmentClick) {
                     this.onApartmentClick(clickedMesh.userData.apartmentId);
                 }
+            } else {
+                // DODAJ TO - kliknięcie poza mieszkaniami zatrzymuje obrót
+                this.isAutoRotating = false;
+                this.rotationSpeed = 0; // Zatrzymaj obrót
+                this.lastInteractionTime = Date.now();
+                console.log('Kliknięcie zatrzymało obrót');
             }
         });
 
@@ -272,8 +284,19 @@ export class ThreeJSScene {
         this.renderer.domElement.addEventListener('mousemove', (event) => {
             if (this.isMouseDown) {
                 const deltaX = event.clientX - this.lastMouseX;
-                this.rotationSpeed += deltaX * 0.0001;
+                
+                // Ustaw stałą prędkość na podstawie kierunku ruchu:
+                if (deltaX > 0) {
+                    this.rotationSpeed = 0.01; // Stała prędkość w prawo
+                } else if (deltaX < 0) {
+                    this.rotationSpeed = -0.01; // Stała prędkość w lewo
+                }
+                
                 this.lastMouseX = event.clientX;
+                
+                // Zatrzymaj automatyczny obrót i zapisz czas:
+                this.isAutoRotating = false;
+                this.lastInteractionTime = Date.now();
             }
         });
 
@@ -306,21 +329,25 @@ export class ThreeJSScene {
         let angle = 0;
         const animate = () => {
             this.animationId = requestAnimationFrame(animate);
-            // Wyłącz automatyczny obrót kamery
-            // angle += this.rotationSpeed; // Usunięte automatyczne zwiększanie kąta
-
+            
+            // Sprawdź czy minęło 3 sekundy od ostatniej interakcji
+            if (!this.isAutoRotating && Date.now() - this.lastInteractionTime > this.autoRotationDelay) {
+                this.isAutoRotating = true;
+                this.rotationSpeed = this.autoRotationSpeed; // Przywróć domyślną prędkość
+            }
+            
+            // Użyj odpowiedniej prędkości obrotu
+            if (this.isAutoRotating) {
+                angle += this.autoRotationSpeed;
+            } else {
+                angle += this.rotationSpeed;
+            }
+            
             // Użyj cameraDistance zamiast stałej wartości
-            // Kamera pozostaje w miejscu, nie obraca się automatycznie
             this.camera.position.x = Math.cos(angle) * this.cameraDistance;
             this.camera.position.z = Math.sin(angle) * this.cameraDistance;
-            this.camera.position.y = this.cameraDistance * 0.6; // Dostosuj wysokość proporcjonalnie
+            this.camera.position.y = this.cameraDistance * 0.6;
             this.camera.lookAt(0, 5, 0);
-
-            // Nie przywracaj rotationSpeed do wartości domyślnej
-            // this.rotationSpeed *= 0.98;
-            // if (Math.abs(this.rotationSpeed) < 0.005) {
-            //     this.rotationSpeed = 0.005;
-            // }
 
             this.renderer.render(this.scene, this.camera);
         };
