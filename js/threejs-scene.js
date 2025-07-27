@@ -116,24 +116,55 @@ export class ThreeJSScene {
                 const model = gltf.scene;
                 model.scale.set(1, 1, 1);
                 model.position.set(0, 0, 0);
+                
+                // Sprawdź wszystkie obiekty w modelu
+                console.log('=== SPRAWDZANIE OBIEKTÓW W MODELU ===');
+                let cameraCount = 0;
+                let meshCount = 0;
+                
                 model.traverse((child) => {
+                    console.log('Obiekt:', child.name, 'Typ:', child.type);
+                    
                     if (child.isMesh) {
+                        meshCount++;
                         child.castShadow = true;
                         child.receiveShadow = true;
                     }
+                    
+                    if (child.isCamera) {
+                        cameraCount++;
+                        console.log('ZNALEZIONO KAMERĘ:', child.name);
+                    }
                 });
+                
+                console.log(`Znaleziono ${cameraCount} kamer i ${meshCount} meshów`);
+                
                 // Szukaj kamery o nazwie 'Camera_MAIN'
                 let foundCamera = null;
                 model.traverse((child) => {
                     if (child.isCamera && child.name === 'Camera_MAIN') {
                         foundCamera = child;
+                        console.log('✅ KAMERA Camera_MAIN ZNALEZIONA!');
+                        console.log('Pozycja kamery:', child.position);
+                        console.log('Rotacja kamery:', child.rotation);
                     }
                 });
+                
                 if (foundCamera) {
                     this.camera = foundCamera;
                     this.handleResize(); // Zaktualizuj proporcje
-                    console.log('Użyto kamery z modelu: Camera_MAIN');
+                    console.log('✅ Użyto kamery z modelu: Camera_MAIN');
+                    console.log('Nowa pozycja kamery:', this.camera.position);
+                } else {
+                    console.log('❌ KAMERA Camera_MAIN NIE ZNALEZIONA!');
+                    console.log('Dostępne kamery:');
+                    model.traverse((child) => {
+                        if (child.isCamera) {
+                            console.log('- ' + child.name);
+                        }
+                    });
                 }
+                
                 buildingGroup.add(model);
                 this.createApartmentOverlays(buildingGroup);
                 console.log('Model dogbl.glb załadowany pomyślnie!');
