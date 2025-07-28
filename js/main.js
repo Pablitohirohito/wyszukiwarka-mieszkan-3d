@@ -167,4 +167,11 @@ window.addEventListener('error', (event) => {
 // Obsługa odrzuconych promes
 window.addEventListener('unhandledrejection', (event) => {
     console.error('Nieobsłużona promesa:', event.reason);
-}); 
+});
+
+let autoRotationSpeed = 0.001; // Przykładowa wartość automatycznego obrotu
+
+// Zmniejsz prędkość automatycznego obrotu o 50%
+autoRotationSpeed *= 0.5;
+
+model.rotation.y += autoRotationSpeed;
