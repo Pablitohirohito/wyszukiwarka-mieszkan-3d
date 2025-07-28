@@ -63,10 +63,8 @@ export class ThreeJSScene {
             0.1, 
             1000
         );
-        // Zmień pozycję kamery jeśli model jest duży/mały
-        this.camera.position.set(30, 20, 30); // Dla dużego modelu
-        // lub
-        this.camera.position.set(10, 8, 10); // Dla małego modelu
+        // Oddal kamerę startową o 50% względem (30, 20, 30)
+        this.camera.position.set(45, 30, 45); // (30 * 1.5, 20 * 1.5, 30 * 1.5)
         this.camera.lookAt(0, 5, 0);
     }
 
@@ -417,4 +415,4 @@ export class ThreeJSScene {
             this.renderer.dispose();
         }
     }
-} 
+}
